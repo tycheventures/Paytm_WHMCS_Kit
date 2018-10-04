@@ -7,7 +7,6 @@ function paytm_config(){
 		"FriendlyName" => array("Type" => "System", "Value"=>"Paytm"),
 		"merchant_id" => array("FriendlyName" => "Merchant ID", "Type" => "text", "Size" => "20", ),
 		"merchant_key" => array("FriendlyName" => "Merchant Key", "Type" => "text", "Size" => "16", ),
-		// "environment" => array("FriendlyName" => "Environment", "Type" => "dropdown", "Options" =>"TEST,LIVE", "Description" => "TEST or LIVE", ),
 		"transaction_url" => array("FriendlyName" => "Transaction Url", "Type" => "text", "Size" => "90", ),
 		"transaction_status_url" => array("FriendlyName" => "Transaction Status Url", "Type" => "text", "Size" => "90", ),
 		"website" => array("FriendlyName" => "Website name", "Type" => "text", "Size" => "20", ),
@@ -24,11 +23,11 @@ function paytm_link($params) {
 	$website= $params['website'];
 	$industry_type= $params['industry_type'];
 	$channel_id="WEB";	
-	// $gateway_mode = $params['environment'];		
 	$transaction_url = $params['transaction_url'];		
 	$amount = $params['amount']; 
 	$email = $params['clientdetails']['email'];
-	
+	$callBackLink=(isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http")."://$_SERVER[HTTP_HOST]$_SERVER[SCRIPT_NAME]";
+	$callBackLink=str_replace('cart.php', 'modules/gateways/callback/paytm.php', $callBackLink);
 	
 	$post_variables = Array(
           "MID" => $merchant_id,
@@ -37,38 +36,17 @@ function paytm_link($params) {
           "TXN_AMOUNT" => $amount,
           "CHANNEL_ID" => $channel_id,
           "INDUSTRY_TYPE_ID" => $industry_type,
+          "CALLBACK_URL" => $callBackLink,
           "WEBSITE" => $website
           );
 	$checksum = getChecksumFromArray($post_variables, $secret_key);
-	
 	$companyname = 'paytm';
-	/*	19751/17Jan2018	*/
-		/*$pg_url = "https://pguat.paytm.com/oltp-web/processTransaction";
-		if($gateway_mode == 'LIVE'){
-			$pg_url = "https://secure.paytm.in/oltp-web/processTransaction";
-		}*/
 
-		/*$pg_url = "https://securegw-stage.paytm.in/theia/processTransaction";
-		if($gateway_mode == 'LIVE'){
-			$pg_url = "https://securegw.paytm.in/theia/processTransaction";
-		}*/
-		$pg_url = $transaction_url;
-	/*	19751/17Jan2018 end	*/
-	$code = '
-	<form method="post" action='. $pg_url .'>
-		<input type="hidden" name="MID" value="'.  $merchant_id . '"/>
-	    <input type="hidden" name="ORDER_ID" value="'. $order_id . '"/>
-	    <input type="hidden" name="WEBSITE" value="'. $website . '"/>
-	    <input type="hidden" name="INDUSTRY_TYPE_ID" value="'. $industry_type . '"/>
-	    <input type="hidden" name="CHANNEL_ID" value="'. $channel_id . '"/>
-	    <input type="hidden" name="TXN_AMOUNT" value="'. $amount . '"/>
-	    <input type="hidden" name="CUST_ID" value="'. $email . '"/>
-	    <input type="hidden" name="txnDate" value="'. date("Y-m-d H:i:s") . '"/>
-	    <input type="hidden" name="CHECKSUMHASH" value="'. $checksum . '"/>
-			<input type="submit" value="Pay with Paytm" />
-	</form>';
+	$code='<form method="post" action='. $transaction_url .'>';
+	foreach ($post_variables as $key => $value) {
+		$code.='<input type="hidden" name="'.$key.'" value="'.$value. '"/>';
+	}
+	$code.='<input type="hidden" name="CHECKSUMHASH" value="'. $checksum . '"/><input type="submit" value="Pay with Paytm" /></form>';
 	return $code;
 }
-
-
 ?>

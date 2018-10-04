@@ -31,33 +31,18 @@ if(isset($response['ORDERID']) && isset($response['STATUS']) && isset($response[
 	
 	// Create an array having all required parameters for status query.
 	$requestParamList = array("MID" => $GATEWAY['merchant_id'] , "ORDERID" => $response['ORDERID']);
-	
 	$StatusCheckSum = getChecksumFromArray($requestParamList, html_entity_decode($GATEWAY['merchant_key']));
-							
 	$requestParamList['CHECKSUMHASH'] = $StatusCheckSum;
 	
 	// Call the PG's getTxnStatus() function for verifying the transaction status.
-	/*	19751/17Jan2018	*/
-		/*$check_status_url = 'https://pguat.paytm.com/oltp/HANDLER_INTERNAL/getTxnStatus';
-		if($GATEWAY['environment']=="LIVE")
-		{
-			$check_status_url = 'https://secure.paytm.in/oltp/HANDLER_INTERNAL/getTxnStatus';
-		}*/
-
-		/*$check_status_url = 'https://securegw-stage.paytm.in/merchant-status/getTxnStatus';
-		if($GATEWAY['environment']=="LIVE")
-		{
-			$check_status_url = 'https://securegw.paytm.in/merchant-status/getTxnStatus';
-		}*/
-		$check_status_url = $GATEWAY['transaction_status_url'];
-	/*	19751/17Jan2018 end	*/
+	$check_status_url = $GATEWAY['transaction_status_url'];
 	
 	if($status== 'TXN_SUCCESS' && $checksum_status == "TRUE"){	
 		$responseParamList = callNewAPI($check_status_url, $requestParamList);
 		if($responseParamList['STATUS']=='TXN_SUCCESS' && $responseParamList['TXNAMOUNT']==$response['TXNAMOUNT'])
 		{
 			$gatewayresult = "success";
-			addInvoicePayment($txnid, $paytm_trans_id, $amount, $gatewaymodule); 
+			addInvoicePayment($txnid, $paytm_trans_id, $amount,"0.0", $gatewaymodule); 
 			logTransaction($GATEWAY["name"], $response, $response['RESPMSG']);
 		}
 		else{
@@ -69,35 +54,13 @@ if(isset($response['ORDERID']) && isset($response['STATUS']) && isset($response[
 		logTransaction($GATEWAY["name"], $response, $response['RESPMSG']); 
 	}
 	
-	$protocol='http://';
-	
-	$host='';
-	
-	if (isset($_SERVER['HTTPS']) && (($_SERVER['HTTPS'] == 'on') || ($_SERVER['HTTPS'] == '1'))) {
-  		$protocol='https://';
-	}
-
-	if (isset($_SERVER["HTTP_HOST"]) && ! empty($_SERVER["HTTP_HOST"])) {
-  		$host=$_SERVER["HTTP_HOST"];
-	}
-	
-	$filename = $protocol . $host . '/viewinvoice.php?id=' . $txnid;
+	$returnResponse=(isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http")."://$_SERVER[HTTP_HOST]$_SERVER[SCRIPT_NAME]";
+	$filename=str_replace('modules/gateways/callback/paytm.php','viewinvoice.php?id='.$txnid, $returnResponse);
     header("Location: $filename");
 }
 else{
-	$protocol='http://';
-	
-	$host='';
-	
-	if (isset($_SERVER['HTTPS']) && (($_SERVER['HTTPS'] == 'on') || ($_SERVER['HTTPS'] == '1'))) {
-  		$protocol='https://';
-	}
-
-	if (isset($_SERVER["HTTP_HOST"]) && ! empty($_SERVER["HTTP_HOST"])) {
-  		$host=$_SERVER["HTTP_HOST"];
-	}
-	
-	$location = $protocol . $host;
+	$returnResponse=(isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http")."://$_SERVER[HTTP_HOST]$_SERVER[SCRIPT_NAME]";
+	$location=str_replace('modules/gateways/callback/paytm.php','', $returnResponse);
 	header("Location: $location");
 }
 ?>

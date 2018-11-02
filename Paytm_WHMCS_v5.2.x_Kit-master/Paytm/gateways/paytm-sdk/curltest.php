@@ -1,4 +1,12 @@
 <?php
+	include("../../../init.php");
+	include("../../../includes/functions.php");
+	include("../../../includes/gatewayfunctions.php");
+	include("../../../includes/invoicefunctions.php");
+
+	$gatewaymodule = "paytm"; 
+	$GATEWAY = getGatewayVariables($gatewaymodule);
+
 	$debug = array();
 	if(!function_exists("curl_init")){
 		$debug[0]["info"][] = "cURL extension is either not available or disabled. Check phpinfo for more info.";
@@ -15,7 +23,7 @@
 			$testing_urls = array(
 				$callBackLink,
 				"www.google.co.in",
-				"https://pguat.paytm.com/oltp/HANDLER_INTERNAL/getTxnStatus"
+				html_entity_decode($GATEWAY['transaction_status_url'])
 			);
 		}
 		/*echo "<pre>";print_r($testing_urls);

@@ -28,6 +28,7 @@ function paytm_link($params) {
 	$email = $params['clientdetails']['email'];
 	$callBackLink=(isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http")."://$_SERVER[HTTP_HOST]$_SERVER[SCRIPT_NAME]";
 	$callBackLink=str_replace('cart.php', 'modules/gateways/callback/paytm.php', $callBackLink);
+	$callBackLink=str_replace('viewinvoice.php', 'modules/gateways/callback/paytm.php', $callBackLink);
 	
 	$post_variables = Array(
           "MID" => $merchant_id,

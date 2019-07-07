@@ -19,7 +19,7 @@ function paytm_link($params) {
 
 	$merchant_id = $params['merchant_id'];
 	$secret_key=$params['merchant_key'];
-	$order_id = $params['invoiceid'];
+	$order_id = $params['invoiceid'].'-'.time(); // Prepare unique order id for PayTM
 	$website= $params['website'];
 	$industry_type= $params['industry_type'];
 	$channel_id="WEB";	
